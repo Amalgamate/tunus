@@ -1,0 +1,82 @@
+// Extend the existing schema
+model Ticket {
+  id            String    @id @default(cuid())
+  userId        String
+  eventId       String
+  status        TicketStatus @default(ACTIVE)
+  purchaseDate  DateTime  @default(now())
+  price         Float
+  pointsEarned  Int
+  user          User      @relation(fields: [userId], references: [id])
+  event         Event     @relation(fields: [eventId], references: [id])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  date        DateTime
+  venue       String
+  capacity    Int
+  price       Float
+  imageUrl    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tickets     Ticket[]
+}
+
+model Reward {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  pointsCost  Int
+  imageUrl    String?
+  validUntil  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  claims      RewardClaim[]
+}
+
+model RewardClaim {
+  id          String    @id @default(cuid())
+  userId      String
+  rewardId    String
+  claimDate   DateTime  @default(now())
+  status      ClaimStatus @default(PENDING)
+  user        User      @relation(fields: [userId], references: [id])
+  reward      Reward    @relation(fields: [rewardId], references: [id])
+}
+
+model Voucher {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  discount    Float
+  validFrom   DateTime  @default(now())
+  validUntil  DateTime
+  maxUses     Int
+  usedCount   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Add to existing User model
+model User {
+  // ... existing fields ...
+  points      Int       @default(0)
+  tickets     Ticket[]
+  claims      RewardClaim[]
+}
+
+enum TicketStatus {
+  ACTIVE
+  USED
+  CANCELLED
+  REFUNDED
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REDEEMED
+}
